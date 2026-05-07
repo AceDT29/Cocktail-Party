@@ -1,0 +1,47 @@
+@import "tailwindcss";
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@layer theme, base, components, utilities;
+
+@theme {
+  --font-bodoni: 'Bodoni Moda', serif;
+  --font-lexend: 'Lexend Deca', sans-serif;
+}
+
+@layer base {
+  body {
+    @apply font-lexend;
+  }
+  h1, h2, h3, h4 {
+    @apply font-bodoni;
+  }
+  img {
+    @apply w-full h-full block;
+  }
+}
+
+@layer components {
+  .mainContainer {
+    @apply relative w-[70%] h-auto min-h-[70vh] mx-auto mt-20 p-2 border-b-2 border-r-2 border-yellow-900/50 rounded-md shadow-lg;
+  }
+  .CardsMenu {
+    @apply w-full h-auto my-4 border rounded-md overflow-auto
+  }
+  .CardsItem {
+    @apply w-48 h-48 flex flex-col items-center cursor-pointer active:scale-95 transition-all lg:w-60 lg:h-60 shadow-lg;
+  }
+  .CardsItemSearch {
+    @apply w-64 h-64 flex flex-col gap-y-3 justify-center items-center cursor-pointer active:scale-95 transition-all lg:w-72 lg:h-72;
+  }
+  .CardsItem-figure {
+    @apply w-full h-full rounded-md shadow-lg;
+  }
+  .navTab {
+    @apply absolute flex items-center gap-x-2 -top-12 left-46 w-32 h-12 cursor-pointer hover:h-16 hover:-top-16 hover:bg-slate-50 transition-all bg-gray-300 shadow-inner z-0 px-3 py-3 rounded-t-lg border-t border-x border-b-0 border-gray-400 text-gray-500
+  }
+  .currentTab {
+    @apply absolute flex items-center gap-x-2 -top-14 -left-0 w-46 h-14 px-3 py-3 bg-white shadow-sm z-10 rounded-t-lg  border-t border-x border-b-0 border-gray-300 font-light;
+  }
+}
