@@ -1,34 +1,17 @@
 import { useDrinks } from "../customHooks/useDrinks";
 import { Link } from "react-router";
 import { useDebounce } from "../customHooks/useDebouncing";
-import { getRandomUniqueLetters } from "../utilities/generateRandom";
-import { getRandomDrinks } from "../services/getRandomDrinks";
 import { useCocktail } from "../customHooks/useCocktail";
 import type { searchState } from "../types/globalStateTypes";
 import type { ReactNode } from "react";
 import likeIcon from "../assets/like-svgrepo-com.svg";
 import searchIcon from "../assets/search-alt-2-svgrepo-com.svg";
 import searchBg from "../assets/search-bg.jpg";
-import { useState } from "react";
 
 export function DailyRandomRecommended({ placeHolder }: { placeHolder: ReactNode }) {
-  const { dataDrinks, loading, setDataDrinks } = useDrinks();
-  const [localLoading, setLocalLoading] = useState(false);
+  const { dataDrinks, loading, fetchMoreResults } = useDrinks();
   const handlerDebouncer = useDebounce;
   const { dispatch } = useCocktail();
-
-  const fetchMoreResults = async () => {
-    const newLetters = getRandomUniqueLetters(8);
-    if (newLetters.length === 0) return;
-    setLocalLoading(true);
-    try {
-      const moreDrinks = await getRandomDrinks(newLetters);
-      setDataDrinks((prev: searchState[]) => prev.concat(moreDrinks));
-      return setLocalLoading(false);
-    } catch (error) {
-      console.error(error);
-    }
-  }
 
   const handleMoreResults = handlerDebouncer({ fn: fetchMoreResults, wait: 1500 });
 
@@ -65,7 +48,7 @@ export function DailyRandomRecommended({ placeHolder }: { placeHolder: ReactNode
             ))}
         </ul>
         <div className="flex mx-auto justify-center items-center">
-          {localLoading ? <p>Cargando...</p> : null}
+          {loading ? <p>Cargando...</p> : null}
           <button className="w-auto cursor-pointer h-auto p-3 rounded-sm border bg-blue-300" onClick={handleMoreResults}>
             Ver mas
           </button>

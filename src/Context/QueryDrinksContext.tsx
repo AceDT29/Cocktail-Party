@@ -1,37 +1,47 @@
 import { useState, createContext, useEffect, useMemo } from 'react'
+import { useQuery } from "@tanstack/react-query";
 import { getRandomDrinks } from "../services/getRandomDrinks";
 import { getRandomUniqueLetters } from "../utilities/generateRandom";
 import { normalizerData } from "../utilities/normalizer"
 import type { propChilds, searchState } from "../types/globalStateTypes"
-import type { Dispatch, SetStateAction } from "react";
 
 type DrinksContextType = {
     dataDrinks: searchState[];
     loading: boolean;
-    letters: string[];
-    setLoading: Dispatch<SetStateAction<boolean>>;
-    setDataDrinks: Dispatch<SetStateAction<searchState[]>>;
+    error: unknown;
+    fetchMoreResults: () => Promise<void>;
 }
 
 export const DrinksContext = createContext<DrinksContextType | null>(null);
 
 export function DrinksProvider({ children }: propChilds) {
-    const [loading, setLoading] = useState(true);
     const [dataDrinks, setDataDrinks] = useState<searchState[] | []>([]);
     const letters = useMemo(() => getRandomUniqueLetters(8), []);
+    const { data, isLoading: loading, isError: error } = useQuery({
+        queryKey: ['drinks', letters],
+        queryFn: () => getRandomDrinks(letters),
+    });
+
+    const fetchMoreResults = async () => {
+        const newLetters = getRandomUniqueLetters(8);
+        if (newLetters.length === 0) return;
+        try {
+            const moreDrinks = await getRandomDrinks(newLetters);
+            setDataDrinks((prev: searchState[]) => prev.concat(moreDrinks));
+        } catch (error) {
+            console.error(error);
+        }
+    }
 
     useEffect(() => {
-        const fetchDrinks = async () => {
-            const drinks = await getRandomDrinks(letters);
-            const normalizeDrinks = normalizerData(drinks);
+        if (data) {
+            const normalizeDrinks = normalizerData(data);
             setDataDrinks(normalizeDrinks);
-            setLoading(false);
-        };
-        fetchDrinks();
-    }, [letters])
+        }
+    }, [data]);
 
     return (
-        <DrinksContext.Provider value={{ dataDrinks, loading, letters, setLoading, setDataDrinks }}>
+        <DrinksContext.Provider value={{ dataDrinks, loading, error, fetchMoreResults }}>
             {children}
         </DrinksContext.Provider>
     )

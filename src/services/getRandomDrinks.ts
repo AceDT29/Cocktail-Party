@@ -1,7 +1,8 @@
 import { normalizerData } from "../utilities/normalizer";
+import type { searchState } from "../types/globalStateTypes";
 
-export const getRandomDrinks = async (letters: string[]) => {
-  if (!letters || letters.length === 0) return;
+export const getRandomDrinks = async (letters: string[]): Promise<searchState[]> => {
+  if (!letters || letters.length === 0) return [];
   try {
     const requests = letters.map(l =>
       fetch(`https://www.thecocktaildb.com/api/json/v1/1/search.php?f=${l}`)
