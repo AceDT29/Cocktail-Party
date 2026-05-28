@@ -3,7 +3,7 @@ import { useContext } from "react";
 
 export function useCocktail() {
     const context = useContext(CocktailContext);
-    if (context === undefined) {
+    if (!context) {
         throw new Error("useCocktail must be used within a CocktailProvider");
     }
     const { state, dispatch } = context;

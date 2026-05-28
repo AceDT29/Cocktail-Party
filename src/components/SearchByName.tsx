@@ -1,61 +1,14 @@
-import { useEffect, useState, useRef } from "react";
 import type { ReactNode } from "react";
-import { searchDataDrinks } from "../services/getSearcheableDrinks";
-import { Link } from "react-router";
-import { useCocktail } from "../customHooks/useCocktail";
-import { useSearchContext } from "../customHooks/useSearchContext";
 import type { searchState } from "../types/globalStateTypes";
+import { Link } from "react-router";
+import { useSearchContext } from "../customHooks/useSearchContext";
 import searchBg from "../assets/search-bg.jpg";
 import likeIcon from "../assets/like-svgrepo-com.svg";
 import searchIcon from "../assets/search-alt-2-svgrepo-com.svg";
 
 export function SearchByName({ placeHolder }: { placeHolder: ReactNode }) {
-    const { searchState, searchDispatch } = useSearchContext();
-    const { dispatch } = useCocktail();
-    const [entries, setEntries] = useState('');
-    const [isTyping, setIsTyping] = useState(false);
-    const debounceRef = useRef(null)
-
-    const handleSearch = async () => {
-        if (debounceRef.current) {
-            clearTimeout(debounceRef.current)
-        }
-        debounceRef.current = setTimeout(async () => {
-            const result = await searchDataDrinks(entries)
-            if (typeof result === "string") {
-                setIsTyping(false);
-                searchDispatch({
-                    type: "GET_NULL_RESULT",
-                    payload: result
-                })
-                return;
-            } else if (typeof result === "object") {
-                setIsTyping(false);
-                const [first, ...rest] = result;
-                searchDispatch({
-                    type: "GET_FIRST_RESULT",
-                    payload: first
-                })
-                searchDispatch({
-                    type: "GET_OTHER_RESULTS",
-                    payload: rest
-                })
-                return;
-            }
-        }, 600)
-    }
-
-    useEffect(() => {
-        if (entries.length > 0) {
-            setIsTyping(true);
-            handleSearch()
-        } else {
-            searchDispatch({
-                type: "CLEAR_RESULTS"
-            });
-            setIsTyping(false);
-        }
-    }, [entries])
+    const { setEntries, firstResult, otherResults, entries, isLoading, setNextFirstResult } = useSearchContext();
+    const isTyping = entries.length > 0 && isLoading;
 
     return (
         <section className="mainContainer">
@@ -89,30 +42,30 @@ export function SearchByName({ placeHolder }: { placeHolder: ReactNode }) {
             <article>
                 {isTyping ? placeHolder : (
                     <>
-                        {typeof searchState.firstResult === "string" ? (
+                        {typeof firstResult === "string" ? (
                             <div className="w-full h-auto flex flex-col justify-start p-4 items-start transition-all">
-                                <h2 className="text-2xl my-4 italic font-semibold">{searchState.firstResult}</h2>
+                                <h2 className="text-2xl my-4 italic font-semibold">{firstResult}</h2>
                             </div>
                         ) : (
                             <>
-                                {searchState.firstResult && (
+                                {firstResult && (
                                     <ul className="flex flex-col justify-start p-4 items-center transition-all">
-                                        <Link to={`/cocktail/${searchState.firstResult?.strDrink}`}>
-                                            <li onClick={() => dispatch({ type: "GET_COCKTAIL", payload: searchState.firstResult })} key={searchState.firstResult?.idDrink} className={`${searchState.firstResult?.strDrink ? 'CardsItemSearch' : 'hidden'}`}>
+                                        <Link to={`/cocktail/${firstResult?.strDrink}`}>
+                                            <li className={`${firstResult?.strDrink ? 'CardsItemSearch' : 'hidden'}`}>
                                                 <figure className='CardsItem-figure'>
-                                                    <img className='w-full h-full block rounded-md' loading="lazy" src={searchState.firstResult?.strDrinkThumb} alt={searchState.firstResult.strDrink} />
+                                                    <img className='w-full h-full block rounded-md' loading="lazy" src={firstResult?.strDrinkThumb} alt={firstResult.strDrink} />
                                                 </figure>
-                                                <p className="font-extralight self-center text-lg inner-shadow lg:text-2xl">{searchState.firstResult?.strDrink}</p>
+                                                <p className="font-extralight self-center text-lg inner-shadow lg:text-2xl">{firstResult?.strDrink}</p>
                                             </li>
                                         </Link>
                                     </ul>
                                 )}
-                                {searchState.otherResults.length > 1 && (
+                                {otherResults.length > 0 ? (
                                     <div className="w-full h-auto flex flex-col justify-start p-4 items-start transition-all">
                                         <h2 className="text-2xl my-4 italic font-semibold">Tambien se busco:</h2>
                                         <ul className="flex flex-col justify-start p-2 items-start transition-all">
-                                            {searchState.otherResults.map((item: searchState) => (
-                                                <button className="w-auto h-auto p-2 cursor-pointer" onClick={() => searchDispatch({ type: "GET_FIRST_RESULT", payload: item })}>
+                                            {otherResults.map((item: searchState) => (
+                                                <button onClick={() => setNextFirstResult(item)} className="w-auto h-auto p-2 cursor-pointer">
                                                     <li key={item?.idDrink} className="w-auto h-auto p-2">
                                                         <p className="font-extralight hover:text-blue-500 self-start text-lg inner-shadow lg:text-2xl">{item?.strDrink}</p>
                                                     </li>
@@ -120,6 +73,8 @@ export function SearchByName({ placeHolder }: { placeHolder: ReactNode }) {
                                             ))}
                                         </ul>
                                     </div>
+                                ) : (
+                                    <p>Sin resultados</p>
                                 )}
                             </>
                         )}
